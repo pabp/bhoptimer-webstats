@@ -26,3 +26,7 @@ A partial rework and improvement of [Shavit's bhoptimer webserver module](https:
 1. Edit config.php to suit your needs. If your MySQL server is not hosted on the same server as the webserver, you'll have to configure it and ensure the user you use has SELECT privileges on the shavit database.
 2. Upload all .php files as well as the /assets folder.
 3. Browse to /index.php, if maps appear in the nav-bar dropdown everything should be in working order.
+
+### Live Demo
+
+https://bhop.crap.site
