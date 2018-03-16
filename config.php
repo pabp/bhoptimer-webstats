@@ -55,5 +55,8 @@ define('DEFAULT_TRACK', 0); // 0 - main
 // amount of records that can be displayed in 'latest records'
 define('RECORD_LIMIT_LATEST', '25');
 
+// amount of players displayed in top players list
+define('PLAYER_TOP_RANKING_LIMIT', '25');
+
 // uses rankings?
 define('USES_RANKINGS', '1');

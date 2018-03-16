@@ -45,9 +45,9 @@ function formattoseconds($time)
     }
 
     if ($iHours > 0) {
-        $newtime = $sHours.':'.$sMinutes.':'.$sSeconds.'s';
+        $newtime = $sHours.':'.$sMinutes.':'.$sSeconds.'h';
     } elseif ($iMinutes > 0) {
-        $newtime = $sMinutes.':'.$sSeconds.'s';
+        $newtime = $sMinutes.':'.$sSeconds.'m';
     } else {
         $newtime = number_format($fSeconds, 3).'s';
     }

@@ -32,6 +32,8 @@ if (isset($_REQUEST['username'])) {
     $username = $_REQUEST['username'];
 }
 
+$top = isset($_REQUEST['top']);
+
 ?>
 
 <!DOCTYPE html>
@@ -101,6 +103,7 @@ if (isset($_REQUEST['username'])) {
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="index.php?rr=1">Recent Records</a></li>
+                <?php if (USES_RANKINGS == '1') { echo '<li><a href="index.php?top=1">Top Players</a></li>'; } ?>
             </ul>
             <form id="records" class="navbar-form navbar-right" method="GET">
                 <div class="form-group">
@@ -159,7 +162,7 @@ if (isset($_REQUEST['username'])) {
             </div>
             <div class="panel-body table-responsive">
         <?php
-        if (!isset($_REQUEST['map']) && !$rr && !isset($_REQUEST['username'])) {
+        if (!isset($_REQUEST['map']) && !$rr && !isset($_REQUEST['username']) && !$top) {
             ?>
             <h1><?php echo HEADER_TITLE; ?></h1>
             <p>
@@ -183,7 +186,7 @@ if (isset($_REQUEST['username'])) {
             $results = false;
             $stmt = false;
 
-            if ($rr && ((USES_RANKINGS == '0' && $stmt = $connection->prepare('SELECT p.map, u.name, p.style, p.time, p.jumps, p.strafes, p.sync, u.auth, p.date FROM '.MYSQL_PREFIX.'playertimes p JOIN (SELECT style, MIN(time) time FROM '.MYSQL_PREFIX.'playertimes GROUP BY style, map) s ON p.style = s.style AND p.time = s.time JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth GROUP BY style, map ORDER BY date DESC;')) || $stmt = $connection->prepare('SELECT pt.map, u.name, pt.style, pt.time, pt.jumps, pt.strafes, pt.sync, u.auth, pt.date, pt.points, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN (SELECT style, MIN(time) time FROM '.MYSQL_PREFIX.'playertimes GROUP BY style, map) s ON pt.style = s.style AND pt.time = s.time JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth GROUP BY style, map ORDER BY date DESC;'))) {
+            if ($rr && ((USES_RANKINGS == '0' && $stmt = $connection->prepare('SELECT p.map, u.name, p.style, p.time, p.jumps, p.strafes, p.sync, u.auth, p.date, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN (SELECT style, MIN(time) time FROM '.MYSQL_PREFIX.'playertimes GROUP BY style, map) s ON p.style = s.style AND p.time = s.time JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth GROUP BY style, map ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;')) || $stmt = $connection->prepare('SELECT pt.map, u.name, pt.style, pt.time, pt.jumps, pt.strafes, pt.sync, u.auth, pt.date, pt.points, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN (SELECT style, MIN(time) time FROM '.MYSQL_PREFIX.'playertimes GROUP BY style, map) s ON pt.style = s.style AND pt.time = s.time JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth GROUP BY style, map ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;'))) {
                 echo $connection->error;
 
                 $stmt->execute();
@@ -225,7 +228,7 @@ if (isset($_REQUEST['username'])) {
                         } ?>
 
     					<tr>
-                            <td><?php echo removeworkshop($map); ?></td>
+                            <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
         					<td><?php echo '<a href="index.php?username='.$name.'">'.$name.'</a>'; ?></td>
         					<td><?php echo $styles[$style]." / ".trackname($track);?></td>
         					<td><?php echo formattoseconds($time); ?></td>
@@ -256,7 +259,7 @@ if (isset($_REQUEST['username'])) {
                         }
                     }
                 }
-            } elseif (!$username) { 
+            } elseif (!$username && !$top) { 
 
                 if (USES_RANKINGS == '0') { 
                     $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.time, p.jumps, p.strafes, p.sync, p.date FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE p.map = ? AND p.style = ? AND p.track = ? ORDER BY time ASC;'); 
@@ -364,6 +367,89 @@ if (isset($_REQUEST['username'])) {
                         }
                     } ?> </table> <?php
                 }
+            } elseif ($top && (USES_RANKINGS == '1')) {
+                $stmt = $connection->prepare('SELECT auth, name, country, lastlogin, points FROM '.MYSQL_PREFIX.'users ORDER BY points DESC LIMIT '.PLAYER_TOP_RANKING_LIMIT.' OFFSET 0;');
+                $stmt->execute();
+                $stmt->store_result();
+                $results = ($rows = $stmt->num_rows) > 0;
+                $stmt->bind_result($auth, $name, $country, $lastlogin, $points);
+
+                if ($rows > 0) {
+                    $first = true;
+
+                    $rank = 1;
+
+                    while ($row = $stmt->fetch()) {
+                        if ($first) {
+                            ?>
+                            <p><span class="mark">Top <?php echo PLAYER_TOP_RANKING_LIMIT; ?></span> Players</p>
+
+                            <table class="table table-striped table-hover">
+                            <thead id="ignore">
+                            <th>Rank</th>
+                            <th>SteamID</th>
+                            <th>Name</th>
+                            <th>Country</th>
+                            <th>Last Seen</th>
+                            <th>Points</th>
+                            </thead>
+
+                            <?php
+
+                            $first = false;
+                        } ?>
+
+                        <?php if ($rank == 1) {
+                            ?>
+                            <tr class="warning">
+                            <?php
+                        } else { 
+                            ?>
+                            <tr class="default">
+                            <?php
+                        } ?>    
+
+                        <td>
+                        <?php switch ($rank) {
+                            case 1:
+                            {
+                                echo '<i class="fa fa-trophy" style="color:#E8C153"></i>';
+                                break;
+                            }
+
+                            case 2:
+                            {
+                                echo '<i class="fa fa-trophy" style="color:#A8A8A8"></i>';
+                                break;
+                            }
+
+                            case 3:
+                            {
+                                echo '<i class="fa fa-trophy" style="color:#965A38"></i>';
+                                break;
+                            }
+
+                            default:
+                            {
+                                echo '#'.$rank;
+                                break;
+                            }
+                        } ?></td>
+                        <td><?php
+                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                        echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
+                        <td><?php echo '<a href="index.php?username='.$name.'">'.$name.'</a>'; ?></td>
+                        <td><?php echo $country; ?></td>
+                        <td><?php echo date('Y-m-d H:i:s', $lastlogin); ?></td>
+                        <td><?php echo $points; ?></td>
+                        </tr>
+                        <?php
+
+                        if (++$rank > PLAYER_TOP_RANKING_LIMIT) {
+                            break;
+                        }
+                    } ?> </table> <?php
+                }
             } elseif ((USES_RANKINGS == '0' && $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.name = ? ORDER BY date ASC;')) || $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.name = ? ORDER BY date ASC;')) {
 
                 $stmt->bind_param('s', $username);
@@ -407,6 +493,7 @@ if (isset($_REQUEST['username'])) {
                             $first = false;
                         } ?>
 
+                        <tr>
                         <td><?php echo $id; ?></td>
                         <td><?php
                         $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
@@ -435,7 +522,7 @@ if (isset($_REQUEST['username'])) {
                         }
                     } ?> </table> <?php
                 }
-            }
+            } 
             if ($stmt != false) {
                 $stmt->close();
             }
