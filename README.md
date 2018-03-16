@@ -5,8 +5,6 @@ A partial rework and improvement of [Shavit's bhoptimer webserver module](https:
 ## Requirements
 
 * bhoptimer using MySQL as the database host. SQLite is unsupported.
-  * Plugins necessary: shavit-wr, shavit-stats
-  * Plugins optional: shavit-rankings
   * Highly recommended to have your database [configured per this article](https://github.com/shavitush/bhoptimer/wiki/4.2.-Extra:-Updating-(Database))
 * A webserver with PHP (tested on lighttpd 1.4.35 running php-cgi 5.6.33 on Debian 8)
 
