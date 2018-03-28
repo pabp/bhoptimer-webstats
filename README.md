@@ -18,7 +18,7 @@ their Steam Community page.
 
 ### New Features
 
-* Search all times by player name.
+* Search all times by player name, SteamID3/32/64 or Steam Community URL.
 * Sort times by main or bonus track per map.
 * View Top Players on the server, sorted by points.
 * Quickly jump between rankings on a given map, style and player.
