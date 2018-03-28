@@ -86,7 +86,7 @@ class SteamID
 
     private static $steam_api_key = false;
     private static $default_detect_raw = false;
-    private static $default_resolve_vanity = false;
+    private static $default_resolve_vanity = true;
 
     /** -----------------------------------------------------------------------
      * Set an API key to use for resolving Custom URLs. If this isn't set

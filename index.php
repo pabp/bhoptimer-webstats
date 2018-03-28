@@ -32,6 +32,12 @@ if (isset($_REQUEST['username'])) {
     $username = $_REQUEST['username'];
 }
 
+$stype = 0;
+
+if (isset($_REQUEST['stype'])) {
+    $stype = $_REQUEST['stype'];
+}
+
 $top = isset($_REQUEST['top']);
 
 ?>
@@ -62,12 +68,12 @@ $top = isset($_REQUEST['top']);
     <!-- let's hope maxcdn won't shut down ._. -->
 
     <!-- load jquery, pretty sure we need it for bootstrap -->
-    <!-- asyncloading it will show irrelevant errors in the browser console, but has to happen due to pagespeed optimizing -->
-    <script async src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
     <!-- bootstrap itself -->
     <script async src="assets/js/bootstrap.min.js"></script>
     <script async src="assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="assets/js/searchbarplaceholder.js"></script>
 
     <!-- Bootstrap core CSS | can't late-load -->
     <link async rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
@@ -146,7 +152,6 @@ $top = isset($_REQUEST['top']);
                         ?>
                     </select>
                 </div>
-
                 <button type="submit" class="btn btn-success">Submit</button>
           </form>
         </div>
@@ -169,18 +174,37 @@ $top = isset($_REQUEST['top']);
                 To view the records of any map, please select it using the menu at the top right of this page.<br/>
                 Don't forget to select a style if you wish, and then tap 'Submit'!</p>
             <br />
-            <form id="records" type="GET">
+
+            <form id="search" method="GET">
                 <div class="form-group">
-                    <label for="usernameinput">Name Search</label>
-                    <input type="text" name="username" class="form-control">
+                    <div class="input-group">
+                        <div class="input-group-btn">
+                            <button type="button" class="btn btn-default dropdown-toggle form-control" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Search by... <span class="caret"></span></button>
+                                    <ul class="dropdown-menu">
+                                        <li onclick="steamidsearchtype(0)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="0" />Name</label></li>
+                                        <li onclick="steamidsearchtype(1)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="1" />SteamID</label></li>
+                                        <li onclick="steamidsearchtype(2)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="2" />SteamID3</label></li>
+                                        <li onclick="steamidsearchtype(3)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="3" />SteamID64</label></li>
+                                        <li onclick="steamidsearchtype(4)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="4" />Steamcommunity.com Profile URL</label></li>
+                                    </ul>
+                        </div><!-- /btn-group -->
+                                <input type="text" name="username" class="form-control username-input" aria-label="..." placeholder="">
+                    </div><!-- /input-group -->
+                    <br />
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <br />
                 </div>
-                <button type="submit" class="btn btn-primary">Search</button>
             </form>
-            <br />
+                <br />
+                <br />
+                <br />
+                <br />
+
             <p>
                 Alternatively, you may click <a href="index.php?rr=1">Recent Records</a> to view the latest <?php echo RECORD_LIMIT_LATEST; ?> records or click <a href="#
                 ">here</a> to join the server.
             </p>
+            </div>
             <?php
         } else {
             $results = false;
@@ -259,7 +283,7 @@ $top = isset($_REQUEST['top']);
                         }
                     }
                 }
-            } elseif (!$username && !$top) { 
+            } elseif (!$username && !$top && !$stype) { 
 
                 if (USES_RANKINGS == '0') { 
                     $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.time, p.jumps, p.strafes, p.sync, p.date FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE p.map = ? AND p.style = ? AND p.track = ? ORDER BY time ASC;'); 
@@ -450,9 +474,49 @@ $top = isset($_REQUEST['top']);
                         }
                     } ?> </table> <?php
                 }
-            } elseif ((USES_RANKINGS == '0' && $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.name = ? ORDER BY date ASC;')) || $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.name = ? ORDER BY date ASC;')) {
+            } elseif ($username) {
+            
+            $authtemp = '';
+            $sid = '';
 
-                $stmt->bind_param('s', $username);
+                if ($stype == '0') {
+                    if (USES_RANKINGS == '0') {
+                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.name = ? ORDER BY date ASC;');
+                    } else {
+                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.name = ? ORDER BY date ASC;');
+                    }
+                } elseif ($stype > '0') {
+                    if ($stype == '1') {
+                        $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID32);
+                    } elseif ($stype == '2') {
+                        $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID3);
+                    } elseif ($stype == '3') {
+                        $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID64);
+                    } elseif ($stype == '4') {
+                        $authtemp = SteamID::Parse($username, SteamID::FORMAT_AUTO);
+                    }
+                        try {
+                            if ($authtemp == false) {
+                                throw new Exception('Bad SteamID or URL');
+                            }
+                                $sid = $authtemp->Format(SteamID::FORMAT_STEAMID3);
+                        } catch (Exception $e) {
+                            echo 'Caught exception: ', $e->getMessage();
+                        }
+
+                    if (USES_RANKINGS == '0') {
+                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
+                    } else {
+                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
+                    }
+                }  
+
+                if ($stype > '0') {
+                    $stmt->bind_param('s', $sid);
+                } else {
+                    $stmt->bind_param('s', $username);
+                }
+
                 $stmt->execute();
 
                 $stmt->store_result();
