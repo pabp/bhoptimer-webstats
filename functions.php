@@ -66,14 +66,14 @@ function removeworkshop($mapname)
     return $mapname;
 }
 
-function trackname($tr)
+function trackname($trk)
 {
-    if ($tr == 0){
+    if ($trk == 0){
         $string = "Main";
     }
     else
     {
-        $string = "Bonus ".$tr;
+        $string = "Bonus ".$trk;
     }
     return $string;
 }

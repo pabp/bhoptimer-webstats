@@ -26,7 +26,7 @@ if (isset($_REQUEST['track'])) {
 
 $rr = isset($_REQUEST['rr']);
 
-$username = "";
+$username = '';
 
 if (isset($_REQUEST['username'])) {
     $username = $_REQUEST['username'];
@@ -40,6 +40,7 @@ if (isset($_REQUEST['stype'])) {
 
 $top = isset($_REQUEST['top']);
 
+if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 ?>
 
 <!DOCTYPE html>
@@ -199,7 +200,6 @@ $top = isset($_REQUEST['top']);
                 <br />
                 <br />
                 <br />
-
             <p>
                 Alternatively, you may click <a href="index.php?rr=1">Recent Records</a> to view the latest <?php echo RECORD_LIMIT_LATEST; ?> records or click <a href="#
                 ">here</a> to join the server.
@@ -254,7 +254,7 @@ $top = isset($_REQUEST['top']);
     					<tr>
                             <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
         					<td><?php echo '<a href="index.php?username='.$name.'">'.$name.'</a>'; ?></td>
-        					<td><?php echo $styles[$style]." / ".trackname($track);?></td>
+        					<td><?php echo $styles[$style].' / '.trackname($track);?></td>
         					<td><?php echo formattoseconds($time); ?></td>
         					<td><?php echo $jumps; ?></td>
                             <td><?php echo $strafes; ?></td>
@@ -485,7 +485,7 @@ $top = isset($_REQUEST['top']);
                     } else {
                         $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.name = ? ORDER BY date ASC;');
                     }
-                } elseif ($stype > '0') {
+                } elseif ($stype > '0') { //FORMAT_AUTO can go wrong pretty easily and has its own extension for Exception so that's used here, the blank message on the second try catch is intentional atm
                     if ($stype == '1') {
                         $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID32);
                     } elseif ($stype == '2') {
@@ -493,15 +493,19 @@ $top = isset($_REQUEST['top']);
                     } elseif ($stype == '3') {
                         $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID64);
                     } elseif ($stype == '4') {
-                        $authtemp = SteamID::Parse($username, SteamID::FORMAT_AUTO);
+                        try {
+                            $authtemp = SteamID::Parse($username, SteamID::FORMAT_AUTO, true);
+                        } catch (SteamIDResolutionException $e) {
+                            echo 'Caught exception: ', $e->getMessage(), '<br />';
+                        }
                     }
                         try {
-                            if ($authtemp == false) {
-                                throw new Exception('Bad SteamID or URL');
+                          if ($authtemp == false) { //Parse function for 32/3/64 returns false on failure, AUTO does both
+                                throw new Exception('Unable to parse SteamID, check your search term and try again');
                             }
                                 $sid = $authtemp->Format(SteamID::FORMAT_STEAMID3);
                         } catch (Exception $e) {
-                            echo 'Caught exception: ', $e->getMessage();
+                            echo 'Caught exception: ', $e->getMessage(), '<br />';
                         }
 
                     if (USES_RANKINGS == '0') {
@@ -544,7 +548,7 @@ $top = isset($_REQUEST['top']);
                             <th>SteamID</th>
                             <th>Name</th>
                             <th>Map</th>
-                            <th>Style</th>
+                            <th>Style / Track</th>
                             <th>Time</th>
                             <th>Jumps</th>
                             <th>Strafes</th>
@@ -563,8 +567,8 @@ $top = isset($_REQUEST['top']);
                         $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
                         <td><?php echo $name; ?></td>
-                        <td><?php echo '<a href="index.php?style='.$style.'&map='.$map.'&track='.$track.'">'.$map.'</a>'; ?></td>
-                        <td><?php echo $styles[$style]; ?></td>
+                        <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
+                        <td><?php echo $styles[$style].' / '.$tracks[$track]; ?></td>
                         <td><?php echo formattoseconds($time); ?></td>
                         <td><?php echo $jumps; ?></td>
                         <td><?php echo $strafes; ?></td>

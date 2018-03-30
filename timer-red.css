@@ -37,6 +37,9 @@ h1,h2 {
 }
 table
 {
-	table-layout: fixed;
+	table-layout: auto;
 	width: 100%;
+}
+.srchhide {
+	visibility: hidden;
 }

@@ -1,15 +1,15 @@
 function steamidsearchtype(select) {
 	var string = "";
 	var out = "";
-	if (select == 0) {
+	if (select === 0) {
 		string = "Player Name";
-	} else if (select == 1) {
+	} else if (select === 1) {
 		string = "SteamID (ex. STEAM_1:0:11223344)";
-	} else if (select == 2) {
+	} else if (select === 2) {
 		string = "SteamID3 (ex. [U:1:11223344] )";
-	} else if (select == 3) {
+	} else if (select === 3) {
 		string = "SteamID64 (ex. 76561179760625728)";
-	} else if (select == 4) {
+	} else if (select === 4) {
 		string = "Steamcommunity.com Profile URL (ex. http://www.steamcommunity.com/id/your_profile_name_here)";
 	}
 	out = document.getElementsByClassName('username-input');

@@ -16,7 +16,7 @@ define('DB_SCHEMA', 'shavit');
 define('RECORD_LIMIT', '100');
 
 // the page's title as seen in the homepage
-define('HOMEPAGE_TITLE', "Bhoptimer Stats");
+define('HOMEPAGE_TITLE', 'Bhoptimer Stats');
 
 // title for the top left side of the screen
 define('TOPLEFT_TITLE', 'Timer Stats');
@@ -39,6 +39,8 @@ $styles = [
     '400 Vel', // 4
     'Half-Sideways', // 5
     'D-Only', // 6
+    'Low Grav', //7 - default unranked, points column will show "---" for these styles
+    'Slowmo', //8 - see above
 ];
 
 //presently bhoptimer only officially supports one bonus track
@@ -48,7 +50,7 @@ $tracks = [
 	'Bonus', // 1
 ];
 
-define('DEFAULT_STYLE', 0); // 0 - forwards
+define('DEFAULT_STYLE', 0); // 0 - normal
 
 define('DEFAULT_TRACK', 0); // 0 - main
 
@@ -60,3 +62,6 @@ define('PLAYER_TOP_RANKING_LIMIT', '25');
 
 // uses rankings?
 define('USES_RANKINGS', '1');
+
+//steam api key for vanity url lookup, can be gotten from http://steamcommunity.com/dev/apikey. not necessary, but recommended
+define('API_KEY', '');
