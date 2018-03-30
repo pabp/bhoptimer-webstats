@@ -5,11 +5,11 @@ A partial rework and improvement of [Shavit's bhoptimer webserver module](https:
 ## Requirements
 
 * bhoptimer using MySQL as the database host. SQLite is unsupported.
-  * To display Top Players (as is default), shavit-wr and 
-shavit-rankings are also required.
+  * To display Top Players (as is default), shavit-wr and shavit-rankings are also required.
   * Highly recommended to have your database [configured per this article](https://github.com/shavitush/bhoptimer/wiki/4.2.-Extra:-Updating-(Database))
-* A webserver with PHP (tested on lighttpd 1.4.35 running php-cgi 5.6.33 on Debian 8)
-  * If you want to use vanity URL searching, php-curl must be installed as well.
+  * If using MySQL version 5.7.5 or greater, you'll need to remove the ONLY_FULL_GROUP_BY clause from the sql_mode variable. This can be done by entering SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY','')); in your MySQL console as root or another user with full privileges.
+* A webserver with PHP (tested on lighttpd 1.4.35 running php-cgi 5.6.33 on Debian 8, lighttpd 1.4.48 running php-fpm 7.1.7 on OSX 10.13)
+  * If you want to use vanity URL searching, the php-curl extension must be installed as well.
 
 ### Features
 
@@ -19,7 +19,7 @@ their Steam Community page.
 
 ### New Features
 
-* Search all times by player name, SteamID3/32/64 or Steam Community URL.
+* Search all times by player name, SteamID3/32/64 or Steam Community/vanity URL.
 * Sort times by main or bonus track per map.
 * View Top Players on the server, sorted by points.
 * Quickly jump between rankings on a given map, style and player.
