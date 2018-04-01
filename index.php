@@ -210,7 +210,12 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
             $results = false;
             $stmt = false;
 
-            if ($rr && ((USES_RANKINGS == '0' && $stmt = $connection->prepare('SELECT p.map, u.name, p.style, p.time, p.jumps, p.strafes, p.sync, u.auth, p.date, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN (SELECT style, MIN(time) time FROM '.MYSQL_PREFIX.'playertimes GROUP BY style, map) s ON p.style = s.style AND p.time = s.time JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;')) || $stmt = $connection->prepare('SELECT pt.map, u.name, pt.style, pt.time, pt.jumps, pt.strafes, pt.sync, u.auth, pt.date, pt.points, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN (SELECT style, MIN(time) time FROM '.MYSQL_PREFIX.'playertimes GROUP BY style, map) s ON pt.style = s.style AND pt.time = s.time JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;'))) {
+            if ($rr) {
+                if (USES_RANKINGS == '0') {
+                    $stmt = $connection->prepare('SELECT p.map, u.name, p.style, p.time, p.jumps, p.strafes, p.sync, u.auth, p.date, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN (SELECT MIN(time) time, map, style, track FROM '.MYSQL_PREFIX.'playertimes GROUP by map, style, track) t JOIN '.MYSQL_PREFIX.'users u ON p.time = t.time AND p.auth = u.auth AND p.map = t.map AND p.style = t.style AND p.track = t.track ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;');
+                } else {
+                     $stmt = $connection->prepare('SELECT p.map, u.name, p.style, p.time, p.jumps, p.strafes, p.sync, u.auth, p.date, p.points, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN (SELECT MIN(time) time, map, style, track FROM '.MYSQL_PREFIX.'playertimes GROUP by map, style, track) t JOIN '.MYSQL_PREFIX.'users u ON p.time = t.time AND p.auth = u.auth AND p.map = t.map AND p.style = t.style AND p.track = t.track ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;');
+                }
                 echo $connection->error;
 
                 $stmt->execute();
