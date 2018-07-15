@@ -374,7 +374,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
     					<td><?php
                         $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
-    					<td><?php echo $name; ?></td>
+    					<td><?php echo '<a href="index.php?stype=2&username='.$auth.'">'.$name.'</a>'; ?></td>
     					<td><?php echo formattoseconds($time); ?></td>
     					<td><?php echo $jumps; ?></td>
                         <td><?php echo $strafes; ?></td>
