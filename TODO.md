@@ -14,3 +14,4 @@ Done
 Ongoing
 
 * [ ] Cleanup. Pull requests appreciated.
+* [ ] Reread bhoptimer SQL source to see if I can glean any improvements.
