@@ -153,7 +153,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         ?>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-success">Submit</button>
+                <button type="submit" class="btn btn-primary">Lookup</button>
           </form>
         </div>
       </div>
@@ -172,45 +172,48 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
             ?>
             <h1><?php echo HEADER_TITLE; ?></h1>
             <p>
-                To view the records of any map, please select it using the menu at the top right of this page.<br/>
-                Don't forget to select a style if you wish, and then tap 'Submit'!</p>
+                To view the records of any map, please select it using the menu at the top right of this page.<br />
+                Otherwise, you can search for a player by their SteamID or display name using the field below.
+            </p>
             <br />
 
             <form id="search" method="GET">
                 <div class="form-group">
                     <div class="input-group">
                         <div class="input-group-btn">
-                            <button type="button" class="btn btn-default dropdown-toggle form-control" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Search by... <span class="caret"></span></button>
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Search by... <span class="caret"></span></button>
                                     <ul class="dropdown-menu">
-                                        <li onclick="steamidsearchtype(0)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="0" />Name</label></li>
+                                        <!-- this is commented out as it's kind of unnecessary
+                                            <li onclick="steamidsearchtype(0)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="0" />Name</label></li> -->
                                         <li onclick="steamidsearchtype(1)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="1" />SteamID</label></li>
                                         <li onclick="steamidsearchtype(2)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="2" />SteamID3</label></li>
                                         <li onclick="steamidsearchtype(3)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="3" />SteamID64</label></li>
                                         <li onclick="steamidsearchtype(4)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="4" />Steamcommunity.com Profile URL</label></li>
                                     </ul>
-                        </div><!-- /btn-group -->
-                                <input type="text" name="username" class="form-control username-input" aria-label="..." placeholder="">
+                        </div>                                
+                                <input type="text" name="username" class="form-control username-input" aria-label="..." placeholder="Name">
+                        <div class="input-group-btn">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
                     </div><!-- /input-group -->
-                    <br />
-                    <button type="submit" class="btn btn-primary">Search</button>
-                    <br />
-                </div>
+                </div><!-- /form-group -->
             </form>
                 <br />
                 <br />
-                <br />
-                <br />
             <p>
-                Alternatively, you may click <a href="index.php?rr=1">Recent Records</a> to view the latest <?php echo RECORD_LIMIT_LATEST; ?> records or click <a href="#
-                ">here</a> to join the server.
+                You may click <a href="index.php?rr=1">Recent Records</a> to view the latest <?php echo RECORD_LIMIT_LATEST; ?> records<?php if (USES_RANKINGS == '1') {echo ', click <a href="index.php?top=1">Top Players</a> to view the leaderboard';}; ?> or click <a href="#">here</a> to join the server.
             </p>
+                <br />
+                <br />                
+                <br />
+                <br />
             </div>
             <?php
         } else {
             $results = false;
             $stmt = false;
 
-            if ($rr) {
+            if ($rr) { //recent records
                 if (USES_RANKINGS == '0') {
                     $stmt = $connection->prepare('SELECT p.map, u.name, p.style, p.time, p.jumps, p.strafes, p.sync, u.auth, p.date, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN (SELECT MIN(time) time, map, style, track FROM '.MYSQL_PREFIX.'playertimes GROUP by map, style, track) t JOIN '.MYSQL_PREFIX.'users u ON p.time = t.time AND p.auth = u.auth AND p.map = t.map AND p.style = t.style AND p.track = t.track ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;');
                 } else {
@@ -288,7 +291,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         }
                     }
                 }
-            } elseif (!$username && !$top && !$stype) { 
+            } elseif (!$username && !$top && !$stype) { //map dropdown
 
                 if (USES_RANKINGS == '0') { 
                     $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.time, p.jumps, p.strafes, p.sync, p.date FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE p.map = ? AND p.style = ? AND p.track = ? ORDER BY time ASC;'); 
@@ -479,7 +482,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         }
                     } ?> </table> <?php
                 }
-            } elseif ($username) {
+            } elseif ($username) { //search
             
             $authtemp = '';
             $sid = '';
@@ -600,9 +603,12 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                 $stmt->close();
             }
 
-            if (!$results) {
-                ?> <h1>No results!</h1>
-                <p>Try another map, there may be some records!</p> <?php
+            if (!$results) { 
+                echo '<h1>No results!</h1> <br />';
+                if ($username == false) {
+                echo '<p>Try another username, Steam names only cache when someone visits the gameserver so names may differ. Try searching by SteamID instead.</p>';
+            }   else { 
+                echo '<p>Try another map or style, there may be some records!</p>';}
             }
         }
         ?>

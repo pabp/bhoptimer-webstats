@@ -13,7 +13,15 @@ th,td {
 .btn {
 	outline: none !important;
 	border: 0.25px solid #171C22;
-  padding:inherit;
+}
+.btn-primary
+{
+	background-color: #820000 !important;
+
+}
+.btn-primary:hover
+{
+	background-color: #a49d92 !important;
 }
 select,select:focus,select:active {
 	background-color:#FFF;
