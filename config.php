@@ -27,6 +27,9 @@ define('MYSQL_PREFIX', '');
 // header title
 define('HEADER_TITLE', 'Welcome!');
 
+//link to join server, of the format steam://{ip}:{port}
+define('SERVER_IP', '');
+
 // page styling
 define('PAGE_STYLE', '0'); // 0 - Default | 1 - Red/Black
 

@@ -201,7 +201,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                 <br />
                 <br />
             <p>
-                You may click <a href="index.php?rr=1">Recent Records</a> to view the latest <?php echo RECORD_LIMIT_LATEST; ?> records<?php if (USES_RANKINGS == '1') {echo ', click <a href="index.php?top=1">Top Players</a> to view the leaderboard';}; ?> or click <a href="#">here</a> to join the server.
+                You may click <a href="index.php?rr=1">Recent Records</a> to view the latest <?php echo RECORD_LIMIT_LATEST; ?> records<?php if (USES_RANKINGS == '1') {echo ', click <a href="index.php?top=1">Top Players</a> to view the leaderboard';}; if (SERVER_IP != '') {echo ' or click <a href="'.SERVER_IP.'">here</a> to join the server.';} ?>
             </p>
                 <br />
                 <br />                
