@@ -128,7 +128,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                     <select name="map" class="form-control" required>
                         <option value="" selected="selected">None</option>
                         <?php
-                        $result = mysqli_query($connection, 'SELECT DISTINCT map FROM '.MYSQL_PREFIX.'mapzones ORDER BY map ASC;');;
+                        $result = mysqli_query($connection, 'SELECT DISTINCT map FROM '.MYSQL_PREFIX.'mapzones ORDER BY map ASC;');
 
                         if ($result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
