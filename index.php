@@ -489,9 +489,15 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 
                 if ($stype == '0') {
                     if (USES_RANKINGS == '0') {
-                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.name = ? ORDER BY date ASC;');
+                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.style, a.track, COUNT(b.map) + 1 rank 
+                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
+                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
+                                WHERE c.name = ? GROUP BY a.map ORDER BY a.id ASC;');
                     } else {
-                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.name = ? ORDER BY date ASC;');
+                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.points, a.style, a.track, COUNT(b.map) + 1 rank 
+                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
+                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
+                                WHERE c.name = ? GROUP BY a.map ORDER BY a.id ASC;');
                     }
                 } elseif ($stype > '0') { //FORMAT_AUTO can go wrong pretty easily and has its own extension for Exception so that's used here, the blank message on the second try catch is intentional atm
                     if ($stype == '1') {
@@ -517,9 +523,15 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         }
 
                     if (USES_RANKINGS == '0') {
-                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
+                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.style, a.track, COUNT(b.map) + 1 rank 
+                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
+                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
+                                WHERE a.auth = ? GROUP BY a.map ORDER BY a.id ASC;');
                     } else {
-                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
+                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.points, a.style, a.track, COUNT(b.map) + 1 rank 
+                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
+                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
+                                WHERE a.auth = ? GROUP BY a.map ORDER BY a.id ASC;');
                     }
                 }  
 
@@ -536,9 +548,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                 $results = ($rows = $stmt->num_rows) > 0;
 
                 if (USES_RANKINGS == '1') {
-                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $points, $style, $track);
+                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $points, $style, $track, $rank);
                 } else {
-                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $style, $track);
+                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $style, $track, $rank);
                 }
 
                 if ($rows > 0) {
@@ -557,6 +569,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             <th>Name</th>
                             <th>Map</th>
                             <th>Style / Track</th>
+                            <th>Rank</th>
                             <th>Time</th>
                             <th>Jumps</th>
                             <th>Strafes</th>
@@ -577,6 +590,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         <td><?php echo $name; ?></td>
                         <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
                         <td><?php echo $styles[$style].' / '.$tracks[$track]; ?></td>
+                        <td><?php echo $rank; ?></td>
                         <td><?php echo formattoseconds($time); ?></td>
                         <td><?php echo $jumps; ?></td>
                         <td><?php echo $strafes; ?></td>
