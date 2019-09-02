@@ -128,7 +128,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                     <select name="map" class="form-control" required>
                         <option value="" selected="selected">None</option>
                         <?php
-                        $result = mysqli_query($connection, 'SELECT DISTINCT map FROM '.MYSQL_PREFIX.'mapzones ORDER BY map ASC;');
+                        $result = mysqli_query($connection, 'SELECT DISTINCT '.MYSQL_PREFIX.'map FROM mapzones ORDER BY map ASC;');
 
                         if ($result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
@@ -275,7 +275,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                                 } ?>
                             </td>
                             <td><?php
-                            $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                            $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
 
         					<td><?php if ($date[4] == '-') {
@@ -375,7 +375,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         } ?></td>
     					<td><?php echo $id; ?></td>
     					<td><?php
-                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
     					<td><?php echo '<a href="index.php?stype=2&username='.$auth.'">'.$name.'</a>'; ?></td>
     					<td><?php echo formattoseconds($time); ?></td>
@@ -400,11 +400,11 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                     } ?> </table> <?php
                 }
             } elseif ($top && (USES_RANKINGS == '1')) {
-                $stmt = $connection->prepare('SELECT auth, name, country, lastlogin, points FROM '.MYSQL_PREFIX.'users ORDER BY points DESC LIMIT '.PLAYER_TOP_RANKING_LIMIT.' OFFSET 0;');
+                $stmt = $connection->prepare('SELECT auth, name, lastlogin, points FROM '.MYSQL_PREFIX.'users ORDER BY points DESC LIMIT '.PLAYER_TOP_RANKING_LIMIT.' OFFSET 0;');
                 $stmt->execute();
                 $stmt->store_result();
                 $results = ($rows = $stmt->num_rows) > 0;
-                $stmt->bind_result($auth, $name, $country, $lastlogin, $points);
+                $stmt->bind_result($auth, $name, $lastlogin, $points);
 
                 if ($rows > 0) {
                     $first = true;
@@ -421,7 +421,6 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             <th>Rank</th>
                             <th>SteamID</th>
                             <th>Name</th>
-                            <th>Country</th>
                             <th>Last Seen</th>
                             <th>Points</th>
                             </thead>
@@ -468,10 +467,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             }
                         } ?></td>
                         <td><?php
-                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
                         <td><?php echo '<a href="index.php?username='.$name.'">'.$name.'</a>'; ?></td>
-                        <td><?php echo $country; ?></td>
                         <td><?php echo date('Y-m-d H:i:s', $lastlogin); ?></td>
                         <td><?php echo $points; ?></td>
                         </tr>
@@ -489,15 +487,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 
                 if ($stype == '0') {
                     if (USES_RANKINGS == '0') {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE c.name = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.name = ? ORDER BY date ASC;');
                     } else {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.points, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE c.name = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.name = ? ORDER BY date ASC;');
                     }
                 } elseif ($stype > '0') { //FORMAT_AUTO can go wrong pretty easily and has its own extension for Exception so that's used here, the blank message on the second try catch is intentional atm
                     if ($stype == '1') {
@@ -523,15 +515,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         }
 
                     if (USES_RANKINGS == '0') {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE a.auth = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
                     } else {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.points, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE a.auth = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
                     }
                 }  
 
@@ -548,9 +534,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                 $results = ($rows = $stmt->num_rows) > 0;
 
                 if (USES_RANKINGS == '1') {
-                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $points, $style, $track, $rank);
+                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $points, $style, $track);
                 } else {
-                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $style, $track, $rank);
+                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $style, $track);
                 }
 
                 if ($rows > 0) {
@@ -569,7 +555,6 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             <th>Name</th>
                             <th>Map</th>
                             <th>Style / Track</th>
-                            <th>Rank</th>
                             <th>Time</th>
                             <th>Jumps</th>
                             <th>Strafes</th>
@@ -585,12 +570,11 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         <tr>
                         <td><?php echo $id; ?></td>
                         <td><?php
-                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
                         <td><?php echo $name; ?></td>
                         <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
                         <td><?php echo $styles[$style].' / '.$tracks[$track]; ?></td>
-                        <td><?php echo $rank; ?></td>
                         <td><?php echo formattoseconds($time); ?></td>
                         <td><?php echo $jumps; ?></td>
                         <td><?php echo $strafes; ?></td>
